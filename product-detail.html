@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sản phẩm - TechStore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+</head>
+<body>
+    <!-- Header (giống index.html) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <a href="index.html">
+                        <h1><i class="fas fa-laptop"></i> TechStore</h1>
+                    </a>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="user-actions">
+                    <div class="user-profile" id="userProfile">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userName">Tài khoản</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <a href="#" id="loginLink">Đăng nhập</a>
+                            <a href="#" id="registerLink">Đăng ký</a>
+                            <a href="favorites.html"><i class="fas fa-heart"></i> Yêu thích</a>
+                            <a href="#" id="logoutLink" style="display: none;">Đăng xuất</a>
+                            <a href="admin.html" id="adminLink" style="display: none;"><i class="fas fa-cog"></i> Quản trị</a>
+                        </div>
+                    </div>
+                    <a href="cart.html" class="cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </a>
+                </div>
+            </div>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                    <li><a href="#" data-category="laptop"><i class="fas fa-laptop"></i> Laptop</a></li>
+                    <li><a href="#" data-category="pc"><i class="fas fa-desktop"></i> PC - Máy tính để bàn</a></li>
+                    <li><a href="#" data-category="component"><i class="fas fa-microchip"></i> Linh kiện máy tính</a></li>
+                    <li><a href="#" data-category="accessory"><i class="fas fa-keyboard"></i> Phụ kiện</a></li>
+                    <li><a href="#" data-category="monitor"><i class="fas fa-tv"></i> Màn hình</a></li>
+                    <li><a href="#"><i class="fas fa-percent"></i> Khuyến mãi</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Modal đăng nhập/đăng ký (giống index.html) -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="loginTabBtn">Đăng nhập</button>
+                <button class="tab-btn" id="registerTabBtn">Đăng ký</button>
+            </div>
+            
+            <div class="auth-form" id="loginForm">
+                <h3>Đăng nhập tài khoản</h3>
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" placeholder="Nhập email của bạn">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Mật khẩu:</label>
+                    <input type="password" id="loginPassword" placeholder="Nhập mật khẩu">
+                </div>
+                <button id="loginBtn" class="btn-primary">Đăng nhập</button>
+                <div class="auth-error" id="loginError"></div>
+            </div>
+            
+            <div class="auth-form" id="registerForm" style="display: none;">
+                <h3>Đăng ký tài khoản</h3>
+                <div class="form-group">
+                    <label for="registerName">Họ và tên:</label>
+                    <input type="text" id="registerName" placeholder="Nhập họ tên của bạn">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" placeholder="Nhập email của bạn">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Mật khẩu:</label>
+                    <input type="password" id="registerPassword" placeholder="Nhập mật khẩu (ít nhất 6 ký tự)">
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Xác nhận mật khẩu:</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Xác nhận mật khẩu">
+                </div>
+                <button id="registerBtn" class="btn-primary">Đăng ký</button>
+                <div class="auth-error" id="registerError"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chi tiết sản phẩm -->
+    <main class="main-content">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html">Trang chủ</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <a href="#" id="categoryBreadcrumb">Danh mục</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <span id="productNameBreadcrumb">Sản phẩm</span>
+            </div>
+            
+            <div class="product-detail-container">
+                <!-- Hình ảnh sản phẩm -->
+                <div class="product-images">
+                    <div class="main-image">
+                        <img id="mainProductImage" src="" alt="Sản phẩm">
+                    </div>
+                    <div class="image-thumbnails" id="imageThumbnails">
+                        <!-- Thumbnails sẽ được thêm bằng JS -->
+                    </div>
+                </div>
+                
+                <!-- Thông tin sản phẩm -->
+                <div class="product-info">
+                    <h1 id="productTitle">Tên sản phẩm</h1>
+                    
+                    <div class="product-rating-large">
+                        <div class="stars" id="productStars">
+                            <!-- Stars sẽ được thêm bằng JS -->
+                        </div>
+                        <span class="rating-text" id="productRatingText">(0 đánh giá)</span>
+                        <span class="sku">Mã SP: <span id="productSKU">N/A</span></span>
+                    </div>
+                    
+                    <div class="product-price-large">
+                        <span class="current-price" id="productCurrentPrice">0đ</span>
+                        <span class="original-price" id="productOriginalPrice"></span>
+                        <span class="discount" id="productDiscount"></span>
+                    </div>
+                    
+                    <div class="product-status">
+                        <span class="stock-status" id="stockStatus">
+                            <i class="fas fa-check-circle"></i> Còn hàng
+                        </span>
+                        <span class="sold-count" id="soldCount">Đã bán: 0</span>
+                    </div>
+                    
+                    <div class="product-specs" id="productSpecs">
+                        <!-- Thông số kỹ thuật sẽ được thêm bằng JS -->
+                    </div>
+                    
+                    <div class="product-actions-large">
+                        <div class="quantity-selector">
+                            <button class="qty-btn minus" id="qtyMinus">-</button>
+                            <input type="number" id="productQuantity" value="1" min="1" max="10">
+                            <button class="qty-btn plus" id="qtyPlus">+</button>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-cart-large" id="addToCartBtn">
+                                <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                            </button>
+                            <button class="btn-buy-now" id="buyNowBtn">
+                                Mua ngay
+                            </button>
+                            <button class="btn-favorite-large" id="favoriteBtn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-warranty">
+                        <h3><i class="fas fa-shield-alt"></i> Bảo hành & Dịch vụ</h3>
+                        <ul>
+                            <li>Bảo hành chính hãng 12 tháng</li>
+                            <li>Đổi mới trong 30 ngày nếu có lỗi</li>
+                            <li>Giao hàng miễn phí toàn quốc</li>
+                            <li>Hỗ trợ kỹ thuật 24/7</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mô tả sản phẩm -->
+            <div class="product-description">
+                <div class="description-tabs">
+                    <button class="desc-tab active" data-tab="description">Mô tả sản phẩm</button>
+                    <button class="desc-tab" data-tab="specs">Thông số kỹ thuật</button>
+                    <button class="desc-tab" data-tab="reviews">Đánh giá</button>
+                </div>
+                
+                <div class="description-content">
+                    <div class="tab-content active" id="descriptionContent">
+                        <p id="productDescriptionText">Đang tải mô tả...</p>
+                    </div>
+                    
+                    <div class="tab-content" id="specsContent">
+                        <table class="specs-table" id="specsTable">
+                            <!-- Thông số sẽ được thêm bằng JS -->
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="reviewsContent">
+                        <div class="reviews-summary">
+                            <div class="avg-rating">
+                                <h3>4.5</h3>
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p>Dựa trên 128 đánh giá</p>
+                            </div>
+                            <div class="rating-bars">
+                                <!-- Thanh đánh giá -->
+                            </div>
+                        </div>
+                        
+                        <div class="review-list" id="reviewList">
+                            <div class="no-reviews">
+                                <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                                <button class="btn-primary" id="writeReviewBtn">Viết đánh giá</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sản phẩm liên quan -->
+            <section class="related-products">
+                <h2 class="section-title">Sản phẩm liên quan</h2>
+                <div class="products-grid" id="relatedProducts">
+                    <!-- Sản phẩm liên quan sẽ được thêm bằng JS -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer (giống index.html) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Về TechStore</h3>
+                    <p>Chuyên cung cấp các sản phẩm công nghệ chính hãng, giá tốt nhất thị trường.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Hỗ trợ khách hàng</h3>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách bảo hành</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.HCM</p>
+                    <p><i class="fas fa-phone"></i> 1900 1234</p>
+                    <p><i class="fas fa-envelope"></i> support@techstore.vn</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 TechStore. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/product-detail.js"></script>
+</body>
+</html>

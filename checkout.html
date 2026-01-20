@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - TechStore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <a href="index.html">
+                        <h1><i class="fas fa-laptop"></i> TechStore</h1>
+                    </a>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="user-actions">
+                    <div class="user-profile" id="userProfile">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userName">Tài khoản</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <a href="#" id="loginLink">Đăng nhập</a>
+                            <a href="#" id="registerLink">Đăng ký</a>
+                            <a href="favorites.html"><i class="fas fa-heart"></i> Yêu thích</a>
+                            <a href="#" id="logoutLink" style="display: none;">Đăng xuất</a>
+                            <a href="admin.html" id="adminLink" style="display: none;"><i class="fas fa-cog"></i> Quản trị</a>
+                        </div>
+                    </div>
+                    <a href="cart.html" class="cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </a>
+                </div>
+            </div>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                    <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
+                    <li><a href="checkout.html" class="active"><i class="fas fa-cash-register"></i> Thanh toán</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 20px;">
+        <h1 class="page-title">Thanh toán</h1>
+        
+        <div id="emptyCartMessage" class="empty-cart-message" style="display: none;">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Giỏ hàng của bạn đang trống</h3>
+            <p>Hãy thêm sản phẩm vào giỏ hàng trước khi thanh toán</p>
+            <a href="index.html" class="btn-primary">Tiếp tục mua sắm</a>
+        </div>
+        
+        <div class="checkout-container">
+            <div class="checkout-form" id="checkoutForm">
+                <h2 class="section-title">Thông tin giao hàng</h2>
+                <form id="checkoutOrderForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullName">Họ và tên *</label>
+                            <input type="text" id="fullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Số điện thoại *</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="province">Tỉnh/Thành phố *</label>
+                            <select id="province" required>
+                                <option value="">Chọn tỉnh/thành phố</option>
+                                <option value="hcm">TP. Hồ Chí Minh</option>
+                                <option value="hn">Hà Nội</option>
+                                <option value="dn">Đà Nẵng</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="district">Quận/Huyện *</label>
+                            <select id="district" required>
+                                <option value="">Chọn quận/huyện</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Địa chỉ cụ thể *</label>
+                        <textarea id="address" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note">Ghi chú</label>
+                        <textarea id="note" rows="3" placeholder="Ghi chú về đơn hàng..."></textarea>
+                    </div>
+                    
+                    <h2 class="section-title">Phương thức thanh toán</h2>
+                    <div class="payment-methods" id="paymentMethods"></div>
+                    
+                    <div class="form-group">
+                        <label for="promoCode">Mã giảm giá</label>
+                        <div class="promo-code">
+                            <input type="text" id="promoCode" placeholder="Nhập mã giảm giá">
+                            <button type="button" id="applyPromoBtn" class="btn-secondary">Áp dụng</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Hoàn tất đặt hàng</button>
+                </form>
+            </div>
+            
+            <div class="checkout-summary">
+                <h2 class="section-title">Đơn hàng của bạn</h2>
+                
+                <div id="checkoutItems"></div>
+                
+                <div class="summary-row">
+                    <span>Tạm tính:</span>
+                    <span id="checkoutSubtotal">0đ</span>
+                </div>
+                <div class="summary-row">
+                    <span>Phí vận chuyển:</span>
+                    <span id="checkoutShippingFee">0đ</span>
+                </div>
+                <div class="summary-row">
+                    <span>Giảm giá:</span>
+                    <span id="checkoutDiscount">0đ</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Tổng cộng:</span>
+                    <span id="checkoutTotal">0đ</span>
+                </div>
+                
+                <input type="hidden" id="totalAmount" name="totalAmount">
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Về TechStore</h3>
+                    <p>Chuyên cung cấp các sản phẩm công nghệ chính hãng, giá tốt nhất thị trường.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Hỗ trợ khách hàng</h3>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách bảo hành</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.HCM</p>
+                    <p><i class="fas fa-phone"></i> 1900 1234</p>
+                    <p><i class="fas fa-envelope"></i> support@techstore.vn</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 TechStore. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/checkout.js"></script>
+</body>
+</html>
